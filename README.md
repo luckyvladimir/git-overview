@@ -26,8 +26,19 @@ The script outputs a neatly formatted table with columns for:
 ### Example Output
 
 ```
-repo-name master* origin[up to date]
-another-repo feature origin[ahead 1, behind 2] upstream[branch not present]
+project-alpha                 master   beta[ahead 126, behind 0] origin[up to date] production[ahead 2782, behind 0]
+widget-factory-client         master   beta[ahead 840, behind 13] origin[up to date] production[ahead 815, behind 0]
+cloud-gatekeeper              main*    origin[ahead 0, behind 1]
+data-hub-api                  master*  origin[up to date]
+enterprise-connector          master*  beta[ahead 4251, behind 90] origin[up to date] production[ahead 3450, behind 0]
+devops-pipeline-tools         main     origin[ahead 0, behind 31]
+backoffice-framework          beta     beta[branch not present] origin[up to date] production[branch not present]
+marketing-dashboard-client    master   beta[ahead 136, behind 0] origin[ahead 0, behind 6]
+analytics-backend-service     master   origin[up to date]
+utility-library               main*    origin[up to date]
+customer-engagement-platform  master   beta[ahead 7, behind 0] origin[up to date]
+infrastructure-as-code        main     origin[ahead 0, behind 39]
+
 ```
 
 - A `*` next to the branch name denotes pending changes.
