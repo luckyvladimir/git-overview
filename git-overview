@@ -22,11 +22,6 @@ check_git_repo() {
     local sync_status=""
     local color_status="clean"
 
-    if [[ -n $(git status --porcelain) ]]; then
-        pending_changes="*"
-        color_status="pending"
-    fi
-
     for remote in $remotes; do
         if git show-ref --verify --quiet "refs/remotes/$remote/$current_branch"; then
             local ahead=$(git rev-list --count HEAD --not "$remote/$current_branch")
@@ -42,6 +37,11 @@ check_git_repo() {
             color_status="not_synced"
         fi
     done
+
+    if [[ -n $(git status --porcelain) ]]; then
+        pending_changes="*"
+        color_status="pending"
+    fi
 
     # Append status to allow color determination
     echo -e "$repo_name\t$current_branch$pending_changes\t$sync_status\t$color_status" >> "$temp_file"
