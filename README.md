@@ -46,7 +46,7 @@ infrastructure-as-code        main     origin[ahead 0, behind 39]
 
 ## Requirements
 
-- Bash
+- Bash/Zsh
 - Git
 
 ## Contributing
