@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Temporary file to hold intermediate output
+temp_file=$(mktemp)
+
+# ANSI color codes
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# Ensure temporary file gets deleted on script exit
+trap 'rm -f "$temp_file"' EXIT
+
+check_git_repo() {
+    local dir="$1"
+    cd "$dir" || return
+    local repo_name=$(basename "$(git rev-parse --show-toplevel)")
+    local current_branch=$(git rev-parse --abbrev-ref HEAD)
+    local pending_changes=""
+    local remotes=$(git remote)
+    local sync_status=""
+    local color_status="clean"
+
+    if [[ -n $(git status --porcelain) ]]; then
+        pending_changes="*"
+        color_status="pending"
+    fi
+
+    for remote in $remotes; do
+        if git show-ref --verify --quiet "refs/remotes/$remote/$current_branch"; then
+            local ahead=$(git rev-list --count HEAD --not "$remote/$current_branch")
+            local behind=$(git rev-list --count "$remote/$current_branch" --not HEAD)
+            if [ "$ahead" -ne 0 ] || [ "$behind" -ne 0 ]; then
+                sync_status+="$remote[ahead $ahead, behind $behind] "
+                color_status="not_synced"
+            else
+                sync_status+="$remote[up to date] "
+            fi
+        else
+            sync_status+="$remote[branch not present] "
+            color_status="not_synced"
+        fi
+    done
+
+    # Append status to allow color determination
+    echo -e "$repo_name\t$current_branch$pending_changes\t$sync_status\t$color_status" >> "$temp_file"
+    cd - > /dev/null || return
+}
+
+traverse() {
+    for d in "$1"/*; do
+        if [ -d "$d" ]; then
+            if [ -d "$d/.git" ]; then
+                check_git_repo "$d"
+            else
+                traverse "$d"
+            fi
+        fi
+    done
+}
+
+# Start traversing from the current directory
+traverse "."
+
+# Process and colorize the output
+while IFS= read -r line; do
+    color_status="${line##*$'\t'}"
+    case $color_status in
+        "pending")
+            color=$RED
+            ;;
+        "not_synced")
+            color=$YELLOW
+            ;;
+        *)
+            color=$GREEN
+            ;;
+    esac
+    # Remove the last tab and everything after it (color_status column) before printing
+    echo -e "${color}${line%$'\t'*}${NC}"
+done < "$temp_file" | column -t -s $'\t'
